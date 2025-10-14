@@ -55,6 +55,14 @@ El lenguaje (Python), la base de datos (PostgreSQL) y todas las dependencias del
 
 ---
 
+## Documentación de la API (OpenAPI / Swagger)
+
+Este proyecto incluye documentación interactiva autogenerada siguiendo el estándar OpenAPI 3. Esta es la forma recomendada para explorar y probar los endpoints directamente desde el navegador.
+
+Una vez que el proyecto esté en ejecución, puedes acceder a la documentación en la siguiente URL:
+
+**[http://localhost:8000/api/docs/](http://localhost:8000/api/docs/)**
+
 ## Uso de la API
 
 A continuación se muestran ejemplos de uso de los endpoints principales utilizando `curl`.
