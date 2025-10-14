@@ -45,11 +45,21 @@ El lenguaje (Python), la base de datos (PostgreSQL) y todas las dependencias del
     ```bash
     cp .env.example .env
     ```
-    El archivo `.env.example` muestra la estructura necesaria. Para tu entorno local, los valores por defecto funcionarán, pero **es una buena práctica de seguridad generar una nueva `SECRET_KEY`**. Puedes generar una rápidamente con el siguiente comando de Django (ejecutado después de levantar los contenedores):
+    El archivo `.env.example` muestra la estructura necesaria. Para tu entorno local, los valores por defecto funcionarán, pero es una buena práctica de seguridad generar una nueva `SECRET_KEY`.
+
+### **3. Ejecución**
+
+1.  **Construye y levanta los contenedores:**
+    Este comando construirá la imagen de la aplicación, descargará la imagen de PostgreSQL y levantará ambos servicios en segundo plano.
     ```bash
-    docker compose exec web python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+    docker compose up --build -d
     ```
-    Copia la clave generada y pégala en tu archivo `.env`.
+
+2.  **Aplica las migraciones de la base de datos:**
+    Con los contenedores en ejecución, ejecuta el siguiente comando para crear las tablas en la base de datos.
+    ```bash
+    docker compose exec web python manage.py migrate
+    ```
 
 ¡Y listo! La API estará disponible en `http://localhost:8000`.
 

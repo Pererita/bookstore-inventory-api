@@ -26,11 +26,3 @@ class BookSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at'
         ]
-
-    def validate_cost_usd(self, value):
-        """
-        Comprueba que el costo en USD sea mayor a cero.
-        """
-        if value <= 0:
-            raise serializers.ValidationError("El costo en USD debe ser mayor a 0.")
-        return value

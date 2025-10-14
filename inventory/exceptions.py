@@ -1,5 +1,4 @@
 from rest_framework.views import exception_handler
-from rest_framework.response import Response
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
@@ -12,7 +11,7 @@ def custom_exception_handler(exc, context):
         if isinstance(response.data, dict):
             for key, value in response.data.items():
                 if isinstance(value, list):
-                    detail = f"{key}: {value[0]}"
+                    detail = f"{key}: {' '.join(map(str, value))}"
                 else:
                     detail = str(value)
                 

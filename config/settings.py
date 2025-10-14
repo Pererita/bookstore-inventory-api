@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal 
 from dotenv import load_dotenv
 load_dotenv()
 """
@@ -28,7 +29,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = int(os.environ.get('DEBUG', default=0))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS_STRING = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(',') if ALLOWED_HOSTS_STRING else []
 
 
 # Application definition
@@ -135,3 +137,9 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'inventory.exceptions.custom_exception_handler'
 }
+
+EXCHANGE_RATE_API_URL = os.environ.get('EXCHANGE_RATE_API_URL')
+
+LOCAL_CURRENCY = os.environ.get('LOCAL_CURRENCY', 'USD')
+
+PROFIT_MARGIN = Decimal(os.environ.get('PROFIT_MARGIN', '0.40'))
