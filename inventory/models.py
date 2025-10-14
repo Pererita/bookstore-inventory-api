@@ -7,7 +7,7 @@ class Book(models.Model):
     """
     isbn_validator = RegexValidator(
         regex=r'^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$',
-        message="El ISBN debe ser un número de 10 o 13 dígitos."
+        message="El ISBN debe ser un número de 10 o 13 dígitos, opcionalmente separado por guiones."
     )
 
     title = models.CharField(max_length=255)
