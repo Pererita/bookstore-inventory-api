@@ -161,26 +161,30 @@ class BookViewSetTestCase(APITestCase):
             Book.objects.get(pk=self.book3.pk)
 
     @patch('inventory.views.requests.get')
-    @patch('django.conf.settings.LOCAL_CURRENCY', 'CLP')
-    @patch('django.conf.settings.PROFIT_MARGIN', Decimal('0.3'))
     def test_calculate_price_success(self, mock_get):
         """
         Prueba el cálculo de precio exitoso.
         """
-        # Configurar el mock para simular la respuesta de la API de cambio
+        local_currency = 'CLP'
+        profit_margin = Decimal('0.3')
+        exchange_rate = Decimal("930.50")
+
         mock_response = mock_get.return_value
         mock_response.status_code = 200
-        mock_response.json.return_value = {"rates": {"CLP": "930.50"}}
+        mock_response.json.return_value = {"rates": {local_currency: str(exchange_rate)}}
         
         url = reverse('book-calculate-price', kwargs={'pk': self.book1.pk})
-        response = self.client.post(url)
+
+        with patch('django.conf.settings.LOCAL_CURRENCY', local_currency), \
+            patch('django.conf.settings.PROFIT_MARGIN', profit_margin):
+            response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.book1.refresh_from_db()
 
-        expected_selling_price = (self.book1.cost_usd * Decimal("930.50")) * (1 + Decimal('0.3'))
+        expected_selling_price = (self.book1.cost_usd * exchange_rate) * (1 + profit_margin)
         self.assertAlmostEqual(self.book1.selling_price_local, expected_selling_price, places=2)
-        self.assertEqual(response.data['currency'], 'CLP')
+        self.assertEqual(response.data['currency'], local_currency)
 
     @patch('inventory.views.requests.get')
     def test_calculate_price_api_failure(self, mock_get):
@@ -196,17 +200,20 @@ class BookViewSetTestCase(APITestCase):
         self.assertIn("servicio de tasas de cambio no está disponible", response.data['error'])
 
     @patch('inventory.views.requests.get')
-    @patch('django.conf.settings.LOCAL_CURRENCY', 'XYZ') # Moneda no existente
     def test_calculate_price_currency_not_found(self, mock_get):
         """
         Prueba el caso donde la moneda local no se encuentra en la respuesta de la API.
         """
+        unsupported_currency = 'XYZ'
         mock_response = mock_get.return_value
         mock_response.status_code = 200
-        mock_response.json.return_value = {"rates": {"USD": "1.0", "EUR": "0.9"}} # No incluye XYZ
+        mock_response.json.return_value = {"rates": {"USD": "1.0", "EUR": "0.9"}}
         
         url = reverse('book-calculate-price', kwargs={'pk': self.book1.pk})
-        response = self.client.post(url)
+
+        with patch('django.conf.settings.LOCAL_CURRENCY', unsupported_currency):
+            response = self.client.post(url)
         
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("es soportada por el servicio de cambio", response.data['error'])
+        expected_error = f"La moneda '{unsupported_currency}' no es soportada por el servicio de cambio."
+        self.assertEqual(response.data['error'], expected_error)
