@@ -2,9 +2,9 @@ name: CI - Bookstore Inventory API
 
 on:
   push:
-    branches: [ main, feature/** ]
+    branches: [ main, develop, feature/** ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   test:
@@ -24,26 +24,40 @@ jobs:
       PROFIT_MARGIN: 0.40
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Código
         uses: actions/checkout@v4
 
+      # 1. Inicia la base de datos y construye la aplicación web
       - name: Build y Start Docker Compose
         run: docker compose up --build -d
 
-      - name: Wait for the Database to be ready
-        uses: cuchi/wait-for-service-action@v1.2
-        with:
-          host: 127.0.0.1
-          port: 5432
-          timeout: 60
-          check-port-command: docker compose exec db pg_isready -h 127.0.0.1 -p 5432 -q -U ${{ secrets.POSTGRES_USER }}
+      # 2. Espera a que PostgreSQL esté lista usando un script de shell
+      - name: Esperar a que PostgreSQL esté lista
+        run: |
+          echo "Esperando a que la base de datos esté lista..."
+          max_retries=10
+          delay=6
+          for i in $(seq 1 $max_retries); do
+            # Intenta conectarse a la BD dentro del contenedor 'db'
+            if docker compose exec db pg_isready -h localhost -p 5432 -U ${{ secrets.POSTGRES_USER }}; then
+              echo "PostgreSQL está lista."
+              exit 0
+            fi
+            echo "Intento $i de $max_retries. Esperando $delay segundos..."
+            sleep $delay
+          done
+          echo "Error: PostgreSQL no está lista después de múltiples reintentos."
+          exit 1 # Falla el workflow si la BD no está lista
           
-      - name: Apply Migrations
+      # 3. Ejecuta las migraciones
+      - name: Aplicar Migraciones
         run: docker compose exec web python manage.py migrate
         
-      - name: Running Django Tests
+      # 4. Ejecuta las pruebas unitarias
+      - name: Ejecutar Pruebas de Django
         run: docker compose exec web python manage.py test inventory
       
-      - name: Stop and Delete Containers
+      # 5. Limpieza
+      - name: Detener y Eliminar Contenedores
         if: always() 
         run: docker compose down -v
