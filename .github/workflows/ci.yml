@@ -1,0 +1,49 @@
+name: CI - Bookstore Inventory API
+
+on:
+  push:
+    branches: [ main, feature/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    env:
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      DB_USER: ${{ secrets.POSTGRES_USER }}
+      DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      
+      DB_NAME: bookstore_db
+      DB_HOST: db
+      DB_PORT: 5432
+      DEBUG: 1
+      EXCHANGE_RATE_API_URL: https://api.exchangerate-api.com/v4/latest/USD
+      LOCAL_CURRENCY: VES
+      PROFIT_MARGIN: 0.40
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build y Start Docker Compose
+        run: docker compose up --build -d
+
+      - name: Wait for the Database to be ready
+        uses: cuchi/wait-for-service-action@v1.2
+        with:
+          host: 127.0.0.1
+          port: 5432
+          timeout: 60
+          check-port-command: docker compose exec db pg_isready -h 127.0.0.1 -p 5432 -q -U ${{ secrets.POSTGRES_USER }}
+          
+      - name: Apply Migrations
+        run: docker compose exec web python manage.py migrate
+        
+      - name: Running Django Tests
+        run: docker compose exec web python manage.py test inventory
+      
+      - name: Stop and Delete Containers
+        if: always() 
+        run: docker compose down -v
