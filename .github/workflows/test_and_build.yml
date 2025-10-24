@@ -2,9 +2,9 @@ name: CI - Bookstore Inventory API
 
 on:
   push:
-    branches: [ main, develop, feature/** ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   test_app:
