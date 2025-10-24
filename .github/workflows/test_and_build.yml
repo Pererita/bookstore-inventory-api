@@ -68,3 +68,39 @@ jobs:
       - name: Detener y Eliminar Contenedores
         if: always() 
         run: docker compose down -v
+
+        
+  build_and_push:
+    name: Build & Publish Docker Image (CD)
+    runs-on: ubuntu-latest
+    needs: test_and_build
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Login en el Registro de Docker
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }} 
+          password: ${{ secrets.DOCKERHUB_TOKEN }}  
+
+      # 2. Configura los metadatos de la imagen (etiquetas/tags)
+      - name: Extract metadata (tags) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/bookstore-inventory-api
+          tags: |
+            type=sha,prefix=,format=short
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') || github.ref == format('refs/heads/{0}', 'develop') }}
+
+      # 3. Construye y Publica la imagen Docker
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
