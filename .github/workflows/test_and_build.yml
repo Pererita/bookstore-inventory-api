@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  ci:
+  test_and_build:
     runs-on: ubuntu-latest
     
     env:
@@ -33,10 +33,10 @@ jobs:
           # Crea el archivo override que mantiene vivo el contenedor 'web'
           echo 'services:
             web:
-              command: /bin/sh -c "while true; do sleep 30; done"' > docker-compose.ci.yml
+              command: /bin/sh -c "while true; do sleep 30; done"' > docker-compose.test_and_build.yml
           
           # Levanta los servicios usando el archivo principal y el override
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build -d
+          docker compose -f docker-compose.yml -f docker-compose.test_and_build.yml up --build -d
 
       # 2. Espera a que PostgreSQL esté lista usando un script de shell
       - name: Esperar a que PostgreSQL esté lista
