@@ -38,9 +38,7 @@ jobs:
           max_retries=10
           delay=6
           for i in $(seq 1 $max_retries); do
-            # Usamos '|| true' para evitar que el script falle inmediatamente si 'db' no está listo
-            # Y verificamos si la conexión es exitosa (código de salida 0)
-            if docker compose exec db pg_isready -h localhost -p 5432 -U ${{ secrets.POSTGRES_USER }} 2>/dev/null; then
+            if docker compose exec db pg_isready -h localhost -p 5432 -U $DB_USER 2>/dev/null; then
               echo "PostgreSQL está lista."
               exit 0
             fi
