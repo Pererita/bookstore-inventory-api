@@ -58,11 +58,25 @@ jobs:
           
       # 3. Aplicar Migraciones
       - name: Aplicar Migraciones
-        run: docker compose exec -T web python manage.py migrate
+        run: docker compose exec -T \
+          --env DB_HOST=$DB_HOST \
+          --env DB_PORT=$DB_PORT \
+          --env DB_NAME=$DB_NAME \
+          --env DB_USER=$DB_USER \
+          --env DB_PASSWORD=$DB_PASSWORD \
+          --env SECRET_KEY=$SECRET_KEY \
+          web python manage.py migrate
         
       # 4. Ejecuta las pruebas unitarias
       - name: Ejecutar Pruebas de Django
-        run: docker compose exec -T web python manage.py test inventory
+        run: docker compose exec -T \
+          --env DB_HOST=$DB_HOST \
+          --env DB_PORT=$DB_PORT \
+          --env DB_NAME=$DB_NAME \
+          --env DB_USER=$DB_USER \
+          --env DB_PASSWORD=$DB_PASSWORD \
+          --env SECRET_KEY=$SECRET_KEY \
+          web python manage.py test inventory
       
       # 5. Limpieza
       - name: Detener y Eliminar Contenedores
