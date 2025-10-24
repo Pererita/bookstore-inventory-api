@@ -7,7 +7,8 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test_and_build:
+  test_app:
+    name: Test Django Application (CI)
     runs-on: ubuntu-latest
     
     env:
@@ -33,10 +34,10 @@ jobs:
           # Crea el archivo override que mantiene vivo el contenedor 'web'
           echo 'services:
             web:
-              command: /bin/sh -c "while true; do sleep 30; done"' > docker-compose.test_and_build.yml
+              command: /bin/sh -c "while true; do sleep 30; done"' > docker-compose.test_app.yml
           
           # Levanta los servicios usando el archivo principal y el override
-          docker compose -f docker-compose.yml -f docker-compose.test_and_build.yml up --build -d
+          docker compose -f docker-compose.yml -f docker-compose.test_app.yml up --build -d
 
       # 2. Espera a que PostgreSQL esté lista usando un script de shell
       - name: Esperar a que PostgreSQL esté lista
@@ -69,11 +70,11 @@ jobs:
         if: always() 
         run: docker compose down -v
 
-        
+
   build_and_push:
     name: Build & Publish Docker Image (CD)
     runs-on: ubuntu-latest
-    needs: test_and_build
+    needs: test_app
     
     steps:
       - name: Checkout Code
