@@ -6,7 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql)
 ![Docker](https://img.shields.io/badge/Docker-24-2496ED?style=for-the-badge&logo=docker)
 
-API RESTful para la gestión del inventario de una librería, desarrollada como parte de la prueba técnica para Nextep Innovation. El proyecto está completamente dockerizado para facilitar su configuración y despliegue.
+API RESTful para la gestión del inventario de una librería. El proyecto está completamente dockerizado para facilitar su configuración y despliegue.
 
 ## Características
 
